@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { Flame, Calendar, BarChart3, TrendingUp, Zap, HeartHandshake, Moon, SunMedium } from "lucide-react";
+import { Flame, Calendar, BarChart3, TrendingUp, Zap, HeartHandshake } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { useDare } from "@/context/DareContext";
@@ -64,22 +63,6 @@ const Profile = () => {
   const { user } = useAuth();
   const { streak, bestStreak, totalSubmissions } = useDare();
   const { rooms, joinedRoomIds } = useRoom();
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
-  useEffect(() => {
-    const storedTheme = window.localStorage.getItem("theme") as "light" | "dark" | null;
-    const initialTheme = storedTheme || "light";
-    setTheme(initialTheme);
-  }, []);
-
-  useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    window.localStorage.setItem("theme", theme);
-  }, [theme]);
 
   const joinedRooms = rooms.filter((room) => joinedRoomIds.includes(room.id));
   const roomBreakdown = joinedRooms.map((room, index) => ({
@@ -142,23 +125,6 @@ const Profile = () => {
                 <h1 className="text-xl font-bold font-display">@{user?.username}</h1>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Joined {user?.joinedDate}</p>
-              </div>
-            </div>
-            <div className="rounded-3xl border border-border bg-muted px-4 py-3 text-sm text-foreground">
-              <p className="font-semibold">Theme</p>
-              <div className="mt-3 flex items-center gap-3">
-                <button
-                  onClick={() => setTheme("light")}
-                  className={`rounded-full px-3 py-2 text-xs font-semibold transition ${theme === "light" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-surface-hover"}`}
-                >
-                  <SunMedium className="h-4 w-4 inline-block mr-1" /> Light
-                </button>
-                <button
-                  onClick={() => setTheme("dark")}
-                  className={`rounded-full px-3 py-2 text-xs font-semibold transition ${theme === "dark" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-surface-hover"}`}
-                >
-                  <Moon className="h-4 w-4 inline-block mr-1" /> Dark
-                </button>
               </div>
             </div>
           </div>

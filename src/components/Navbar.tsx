@@ -2,6 +2,7 @@ import { Flame, LogOut, Home, Users, DoorOpen, UserCircle, FileText } from "luci
 import { useAuth } from "@/context/AuthContext";
 import { useDare } from "@/context/DareContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const userNavTabs = [
   { to: "/home", icon: Home, label: "Home" },
@@ -64,16 +65,14 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {isAdmin ? (
-            <div className="hidden sm:flex items-center gap-2 rounded-full bg-secondary/70 px-3 py-1.5 text-sm font-semibold text-secondary-foreground">
-              <span>Admin Panel</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary animate-pulse-glow">
-              <Flame className="h-4 w-4" />
-              <span>{streak}</span>
-            </div>
-          )}
+          <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary animate-pulse-glow">
+            <Flame className="h-4 w-4" />
+            <span>{streak}</span>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-3 rounded-full bg-secondary/70 px-3 py-1.5 text-sm font-semibold text-secondary-foreground">
+            <ThemeToggle />
+          </div>
 
           <button
             onClick={handleLogout}

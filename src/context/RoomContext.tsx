@@ -3,7 +3,9 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 export interface Room {
   id: string;
   name: string;
-  description: string;
+  description?: string;
+  dareText?: string;
+  allowAdminViewSubmissions?: boolean;
   adminUsername: string;
   visibility: "public" | "private";
   memberCount: number;
@@ -13,18 +15,18 @@ export interface Room {
 
 interface RoomContextType {
   rooms: Room[];
-  createRoom: (room: Omit<Room, "id" | "createdAt" | "memberCount">) => void;
+  createRoom: (room: Omit<Room, "id" | "createdAt" | "memberCount">) => Room;
   updateRoom: (roomId: string, updates: Partial<Omit<Room, "id" | "adminUsername" | "createdAt" | "memberCount">>) => void;
   joinRoom: (roomId: string) => void;
   joinedRoomIds: string[];
 }
 
 const dummyRooms: Room[] = [
-  { id: "r1", name: "Morning Warriors", description: "Daily dares at sunrise. Push your limits before the world wakes up.", adminUsername: "admin_alex", visibility: "public", memberCount: 234, dareTime: "06:00", createdAt: "2025-12-01" },
-  { id: "r2", name: "Fitness Freaks", description: "Physical challenges only. Cold showers, runs, workouts.", adminUsername: "fit_guru", visibility: "public", memberCount: 512, dareTime: "07:00", createdAt: "2025-11-15" },
-  { id: "r3", name: "Social Butterflies", description: "Dares focused on talking to strangers and social skills.", adminUsername: "social_sara", visibility: "public", memberCount: 189, dareTime: "12:00", createdAt: "2026-01-10" },
-  { id: "r4", name: "Night Owls", description: "Late night challenges for the brave.", adminUsername: "owl_mike", visibility: "public", memberCount: 97, dareTime: "22:00", createdAt: "2026-02-20" },
-  { id: "r5", name: "Creative Chaos", description: "Art, writing, music — creative dares daily.", adminUsername: "art_luna", visibility: "public", memberCount: 341, dareTime: "10:00", createdAt: "2026-03-05" },
+  { id: "r1", name: "Morning Warriors", description: "Daily dares at sunrise. Push your limits before the world wakes up.", dareText: "Share a sunrise photo and say one thing you are grateful for.", allowAdminViewSubmissions: true, adminUsername: "admin_alex", visibility: "public", memberCount: 234, dareTime: "06:00", createdAt: "2025-12-01" },
+  { id: "r2", name: "Fitness Freaks", description: "Physical challenges only. Cold showers, runs, workouts.", dareText: "Complete 20 burpees and post a short clip.", allowAdminViewSubmissions: false, adminUsername: "fit_guru", visibility: "public", memberCount: 512, dareTime: "07:00", createdAt: "2025-11-15" },
+  { id: "r3", name: "Social Butterflies", description: "Dares focused on talking to strangers and social skills.", dareText: "Talk to someone new today and share how it went.", allowAdminViewSubmissions: true, adminUsername: "social_sara", visibility: "public", memberCount: 189, dareTime: "12:00", createdAt: "2026-01-10" },
+  { id: "r4", name: "Night Owls", description: "Late night challenges for the brave.", dareText: "Write a midnight poem or capture a night sky photo.", allowAdminViewSubmissions: false, adminUsername: "owl_mike", visibility: "public", memberCount: 97, dareTime: "22:00", createdAt: "2026-02-20" },
+  { id: "r5", name: "Creative Chaos", description: "Art, writing, music — creative dares daily.", dareText: "Create something bold with only three colors.", allowAdminViewSubmissions: true, adminUsername: "art_luna", visibility: "public", memberCount: 341, dareTime: "10:00", createdAt: "2026-03-05" },
 ];
 
 const RoomContext = createContext<RoomContextType | null>(null);
@@ -42,12 +44,14 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
   const createRoom = (room: Omit<Room, "id" | "createdAt" | "memberCount">) => {
     const newRoom: Room = {
       ...room,
+      allowAdminViewSubmissions: room.allowAdminViewSubmissions ?? false,
       id: `r-${Date.now()}`,
       memberCount: 1,
       createdAt: new Date().toISOString().split("T")[0],
     };
     setRooms((prev) => [newRoom, ...prev]);
     setJoinedRoomIds((prev) => [newRoom.id, ...prev]);
+    return newRoom;
   };
 
   const updateRoom = (

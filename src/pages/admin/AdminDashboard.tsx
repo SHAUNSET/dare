@@ -3,6 +3,7 @@ import { useRoom } from "@/context/RoomContext";
 import { useDare } from "@/context/DareContext";
 import StatCard from "@/components/StatCard";
 import AdminLayout from "@/layouts/AdminLayout";
+import { GLOBAL_DARE_UNLOCK_LABEL } from "@/lib/constants";
 
 const activityLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const participationBars = [72, 84, 66, 95, 88, 76, 103];
@@ -25,6 +26,7 @@ const AdminDashboard = () => {
         <div>
           <h1 className="text-2xl font-bold font-display">Dashboard</h1>
           <p className="text-muted-foreground text-sm mt-1">Overview of DARE platform performance and room activity.</p>
+          <p className="text-sm text-primary/90 mt-2">{GLOBAL_DARE_UNLOCK_LABEL}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">

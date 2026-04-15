@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Globe, Lock, Clock } from "lucide-react";
+import { ArrowLeft, Globe, Lock, Clock, Share2 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AdminLayout from "@/layouts/AdminLayout";
 import { useRoom } from "@/context/RoomContext";
@@ -12,16 +12,18 @@ const RoomDetail = () => {
   const room = rooms.find((r) => r.id === roomId);
 
   const [name, setName] = useState(room?.name ?? "");
-  const [description, setDescription] = useState(room?.description ?? "");
+  const [dareText, setDareText] = useState(room?.dareText ?? "");
   const [visibility, setVisibility] = useState<"public" | "private">(room?.visibility ?? "public");
   const [dareTime, setDareTime] = useState(room?.dareTime ?? "08:00");
+  const [allowAdminView, setAllowAdminView] = useState(room?.allowAdminViewSubmissions ?? false);
 
   useEffect(() => {
     if (room) {
       setName(room.name);
-      setDescription(room.description);
+      setDareText(room.dareText ?? "");
       setVisibility(room.visibility);
       setDareTime(room.dareTime);
+      setAllowAdminView(room.allowAdminViewSubmissions ?? false);
     }
   }, [room]);
 
@@ -41,7 +43,7 @@ const RoomDetail = () => {
   }
 
   const handleSave = () => {
-    updateRoom(room.id, { name, description, visibility, dareTime });
+    updateRoom(room.id, { name, dareText, visibility, dareTime, allowAdminViewSubmissions: allowAdminView });
     navigate("/admin/rooms");
   };
 
@@ -73,13 +75,16 @@ const RoomDetail = () => {
                 className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">Edit Dare</label>
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground font-medium">Today's Dare</p>
+                <p className="mt-1 text-sm text-foreground">This text will show as the room's active challenge.</p>
+              </div>
               <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={dareText}
+                onChange={(e) => setDareText(e.target.value)}
                 rows={5}
-                placeholder="Enter the challenge or dare prompt for this room"
+                placeholder="Write the daily dare for this room"
                 className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all"
               />
             </div>
@@ -111,14 +116,33 @@ const RoomDetail = () => {
                   </button>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Edit Daily Dare Time</label>
-                <input
-                  type="time"
-                  value={dareTime}
-                  onChange={(e) => setDareTime(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">Edit Daily Dare Time</label>
+                  <input
+                    type="time"
+                    value={dareTime}
+                    onChange={(e) => setDareTime(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                </div>
+                <div className="rounded-3xl border border-border bg-muted p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Allow admin to view submissions</p>
+                      <p className="text-xs text-muted-foreground mt-1">Toggle whether submissions are visible to the room admin.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAllowAdminView((prev) => !prev)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        allowAdminView ? "bg-primary text-primary-foreground" : "bg-muted text-foreground border border-border"
+                      }`}
+                    >
+                      {allowAdminView ? "Enabled" : "Disabled"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -131,6 +155,28 @@ const RoomDetail = () => {
             <div className="rounded-xl border border-border bg-muted p-4">
               <p className="font-semibold text-foreground">Created</p>
               <p className="mt-1">{room.createdAt}</p>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-border bg-primary/5 p-4 text-sm text-primary shadow-card">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-primary/80">Invite participants</p>
+                <p className="mt-2 text-sm text-foreground">Use the room link or QR code to share access to this room.</p>
+              </div>
+              <button className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-all">
+                <Share2 className="h-4 w-4" /> Copy room link
+              </button>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-3xl border border-border bg-card p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Share link</p>
+                <p className="mt-2 break-words text-sm text-foreground">{`${window.location.origin}/rooms/${room.id}`}</p>
+              </div>
+              <div className="rounded-3xl border border-border bg-card p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">QR code</p>
+                <div className="mt-3 h-28 w-full rounded-3xl bg-muted flex items-center justify-center text-xs text-muted-foreground">QR mockup</div>
+              </div>
             </div>
           </div>
 

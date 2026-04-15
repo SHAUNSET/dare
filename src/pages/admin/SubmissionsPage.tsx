@@ -1,19 +1,46 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { useRoom } from "@/context/RoomContext";
 import AdminLayout from "@/layouts/AdminLayout";
 
-const initial = [
-  { id: "1", user: "alex_fire", content: "Talked to barista about their favorite book", timestamp: "2 hours ago" },
-  { id: "2", user: "sara_bold", content: "🖼️ Image submission", timestamp: "4 hours ago" },
-  { id: "3", user: "mike_dare", content: "Called an old friend I hadn't spoken to in years", timestamp: "5 hours ago" },
-  { id: "4", user: "luna_x", content: "Cold shower at 6 AM", timestamp: "6 hours ago" },
-  { id: "5", user: "jay_run", content: "🖼️ Image submission", timestamp: "8 hours ago" },
-];
+interface AdminSubmission {
+  id: string;
+  user: string;
+  content: string;
+  timestamp: string;
+}
+
+const dummyRoomSubmissions: Record<string, AdminSubmission[]> = {
+  r1: [
+    { id: "r1-1", user: "alex_fire", content: "Shared a sunrise photo and a gratitude note.", timestamp: "2 hours ago" },
+    { id: "r1-2", user: "sara_bold", content: "Captured the morning sky while stretching.", timestamp: "4 hours ago" },
+  ],
+  r2: [
+    { id: "r2-1", user: "fit_guru", content: "Finished 20 burpees and posted a quick clip.", timestamp: "1 hour ago" },
+  ],
+  r3: [
+    { id: "r3-1", user: "mike_dare", content: "Spoke to a barista about their favorite book.", timestamp: "3 hours ago" },
+  ],
+  r4: [],
+  r5: [
+    { id: "r5-1", user: "luna_x", content: "Created a bold sketch using just three colors.", timestamp: "5 hours ago" },
+  ],
+};
 
 const SubmissionsPage = () => {
-  const [subs, setSubs] = useState(initial);
+  const { rooms } = useRoom();
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [subs, setSubs] = useState<Record<string, AdminSubmission[]>>(dummyRoomSubmissions);
 
-  const handleDelete = (id: string) => setSubs((prev) => prev.filter((s) => s.id !== id));
+  const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? null;
+  const selectedSubmissions = selectedRoomId ? subs[selectedRoomId] ?? [] : [];
+
+  const handleDelete = (roomId: string, id: string) => {
+    setSubs((prev) => ({
+      ...prev,
+      [roomId]: prev[roomId]?.filter((s) => s.id !== id) ?? [],
+    }));
+  };
 
   return (
     <AdminLayout>
@@ -23,29 +50,107 @@ const SubmissionsPage = () => {
           <p className="text-muted-foreground text-sm mt-1">Review and moderate user submissions</p>
         </div>
 
-        <div className="space-y-3">
-          {subs.map((s) => (
-            <div key={s.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-card hover:border-primary/20 transition-colors">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-sm">@{s.user}</span>
-                  <span className="text-xs text-muted-foreground">· {s.timestamp}</span>
-                </div>
-                <p className="text-sm text-muted-foreground truncate">{s.content}</p>
-              </div>
-              <button
-                onClick={() => handleDelete(s.id)}
-                className="ml-4 rounded-lg p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shrink-0"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+        <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Rooms</p>
+            <div className="mt-4 space-y-3">
+              {rooms.map((room) => (
+                <button
+                  key={room.id}
+                  onClick={() => setSelectedRoomId(room.id)}
+                  className={`w-full text-left rounded-3xl border px-4 py-4 transition-all ${
+                    selectedRoomId === room.id
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-muted hover:border-primary/30 hover:bg-surface-elevated"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{room.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{room.dareText ?? "No dare set yet"}</p>
+                    </div>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${room.allowAdminViewSubmissions ? "bg-primary/10 text-primary" : "bg-muted/80 text-muted-foreground"}`}>
+                      {room.allowAdminViewSubmissions ? "Visible" : "Hidden"}
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
-          ))}
+          </div>
+        </div>
 
-          {subs.length === 0 && (
-            <p className="text-center text-muted-foreground py-12">No submissions to review</p>
+        <div className="space-y-4">
+          {selectedRoom ? (
+            <div className="space-y-4">
+              <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-primary/70">Room</p>
+                    <h2 className="text-2xl font-bold font-display text-foreground mt-2">{selectedRoom.name}</h2>
+                    <p className="mt-3 text-sm text-muted-foreground">{selectedRoom.dareText ?? "No active dare available."}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedRoomId(null)}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-hover transition-all"
+                  >
+                    <ArrowLeft className="h-4 w-4" /> Back to rooms
+                  </button>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-3xl border border-border bg-muted p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Submission access</p>
+                    <p className="mt-2 text-sm text-foreground">{selectedRoom.allowAdminViewSubmissions ? "Admin can see room submissions." : "Admin submissions view is disabled for this room."}</p>
+                  </div>
+                  <div className="rounded-3xl border border-border bg-muted p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Room visibility</p>
+                    <p className="mt-2 text-sm text-foreground">{selectedRoom.visibility.charAt(0).toUpperCase() + selectedRoom.visibility.slice(1)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {selectedRoom.allowAdminViewSubmissions ? (
+                <div className="space-y-3">
+                  {selectedSubmissions.length > 0 ? (
+                    selectedSubmissions.map((s) => (
+                      <div key={s.id} className="rounded-3xl border border-border bg-card p-5 shadow-card">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">@{s.user}</p>
+                            <p className="text-xs text-muted-foreground">{s.timestamp}</p>
+                          </div>
+                          <button
+                            onClick={() => handleDelete(selectedRoom.id, s.id)}
+                            className="rounded-lg p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{s.content}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-3xl border border-dashed border-border bg-muted p-8 text-center">
+                      <p className="text-sm font-semibold text-foreground">No submissions found for this room.</p>
+                      <p className="mt-2 text-sm text-muted-foreground">Nothing has been submitted yet or submissions are still pending.</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-3xl border border-border bg-muted p-8 text-center">
+                  <p className="text-sm font-semibold text-foreground">Submissions are hidden</p>
+                  <p className="mt-2 text-sm text-muted-foreground">This room is not currently sharing submissions with admins.</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-border bg-card p-8 text-center shadow-card">
+              <p className="text-sm font-semibold text-foreground">Select a room to see its submissions</p>
+              <p className="mt-2 text-sm text-muted-foreground">Only rooms with submission visibility enabled will show entries.</p>
+            </div>
           )}
         </div>
+      </div>
       </div>
     </AdminLayout>
   );

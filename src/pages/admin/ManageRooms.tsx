@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Globe, Lock, Users, Clock } from "lucide-react";
+import { Plus, Globe, Lock, Users, Link as ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import AdminLayout from "@/layouts/AdminLayout";
-import { useRoom } from "@/context/RoomContext";
+import { Room, useRoom } from "@/context/RoomContext";
 import { useAuth } from "@/context/AuthContext";
 
 const ManageRooms = () => {
@@ -11,20 +11,25 @@ const ManageRooms = () => {
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
-  const [dareTime, setDareTime] = useState("08:00");
+  const [allowAdminView, setAllowAdminView] = useState(false);
+  const [lastCreatedRoom, setLastCreatedRoom] = useState<Room | null>(null);
 
   const adminRooms = rooms.filter((r) => r.adminUsername === user?.username);
 
   const handleCreate = () => {
-    if (!name || !description) return;
-    createRoom({ name, description, adminUsername: user?.username || "admin", visibility, dareTime });
+    if (!name) return;
+    const newRoom = createRoom({
+      name,
+      adminUsername: user?.username || "admin",
+      visibility,
+      dareTime: "08:00",
+      allowAdminViewSubmissions: allowAdminView,
+    });
+    setLastCreatedRoom(newRoom);
     setName("");
-    setDescription("");
     setVisibility("public");
-    setDareTime("08:00");
-    setShowCreate(false);
+    setAllowAdminView(false);
   };
 
   return (
@@ -65,60 +70,59 @@ const ManageRooms = () => {
                 placeholder="Room name"
                 className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Room description"
-                rows={4}
-                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all"
-              />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Visibility</label>
-                  <div className="grid w-full grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setVisibility("public")}
-                      className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
-                        visibility === "public"
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-muted text-muted-foreground hover:bg-surface-hover"
-                      }`}
-                    >
-                      <Globe className="h-4 w-4" /> Public
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVisibility("private")}
-                      className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
-                        visibility === "private"
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-muted text-muted-foreground hover:bg-surface-hover"
-                      }`}
-                    >
-                      <Lock className="h-4 w-4" /> Private
-                    </button>
+              <div className="rounded-3xl border border-border bg-muted p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Allow admin to view submissions</p>
+                    <p className="text-xs text-muted-foreground mt-1">Controls whether admin access is enabled for this room.</p>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Daily Dare Time</label>
-                  <input
-                    type="time"
-                    value={dareTime}
-                    onChange={(e) => setDareTime(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setAllowAdminView((prev) => !prev)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      allowAdminView ? "bg-primary text-primary-foreground" : "bg-muted text-foreground border border-border"
+                    }`}
+                  >
+                    {allowAdminView ? "Enabled" : "Disabled"}
+                  </button>
                 </div>
               </div>
             </div>
 
             <button
               onClick={handleCreate}
-              disabled={!name || !description}
+              disabled={!name}
               className="gradient-fire inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Add Room
+              Create Room
             </button>
+
+            {lastCreatedRoom && (
+              <div className="rounded-3xl border border-primary/30 bg-primary/5 p-4 text-primary shadow-card">
+                <p className="text-sm font-semibold">Room created!</p>
+                <p className="text-xs text-muted-foreground mt-1">Share this room with participants using the link or QR code below.</p>
+                <div className="mt-4 rounded-3xl border border-border bg-card p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Share link</p>
+                      <p className="mt-2 break-words text-sm text-foreground">{`${window.location.origin}/rooms/${lastCreatedRoom.id}`}</p>
+                    </div>
+                    <button className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-all">
+                      <ExternalLink className="h-4 w-4" /> Copy link
+                    </button>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">QR code</p>
+                      <div className="mt-3 h-28 w-28 rounded-3xl bg-muted flex items-center justify-center text-xs text-muted-foreground">QR mockup</div>
+                    </div>
+                    <button className="rounded-full bg-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-hover transition-all">
+                      Show QR code
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -143,7 +147,9 @@ const ManageRooms = () => {
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <h3 className="text-lg font-bold font-display text-foreground truncate">{room.name}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{room.description}</p>
+                      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                        <span className="font-semibold text-foreground">Today's Dare:</span> {room.dareText ?? "Set the room dare inside room details."}
+                      </p>
                     </div>
                     <div className="flex flex-col items-start gap-2 text-xs text-muted-foreground sm:items-end">
                       <span className={`rounded-full px-2.5 py-1 ${room.visibility === "public" ? "bg-primary/10 text-primary" : "bg-muted/80 text-muted-foreground"}`}>

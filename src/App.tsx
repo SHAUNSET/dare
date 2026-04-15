@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { DareProvider } from "@/context/DareContext";
 import { RoomProvider } from "@/context/RoomContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
@@ -62,19 +63,21 @@ const AppRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <DareProvider>
-          <RoomProvider>
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
-          </RoomProvider>
-        </DareProvider>
-      </AuthProvider>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <DareProvider>
+            <RoomProvider>
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </RoomProvider>
+          </DareProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

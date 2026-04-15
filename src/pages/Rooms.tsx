@@ -9,6 +9,7 @@ import { useRoom } from "@/context/RoomContext";
 import { useAuth } from "@/context/AuthContext";
 import { useDare } from "@/context/DareContext";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { GLOBAL_DARE_UNLOCK_LABEL } from "@/lib/constants";
 
 interface RoomSubmission {
   id: string;
@@ -21,7 +22,7 @@ interface RoomSubmission {
 const Rooms = () => {
   const { rooms, joinRoom, joinedRoomIds } = useRoom();
   const { user } = useAuth();
-  const { currentDare, submitDare } = useDare();
+  const { submitDare } = useDare();
   const [search, setSearch] = useState("");
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -58,6 +59,7 @@ const Rooms = () => {
           <div>
             <h1 className="text-3xl font-bold font-display">Rooms</h1>
             <p className="text-muted-foreground text-sm mt-1">Enter a room to see its daily dare and unlock submissions.</p>
+            <p className="text-sm text-primary/90 mt-2">{GLOBAL_DARE_UNLOCK_LABEL}</p>
           </div>
           <div className="inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground">
             <Crown className="h-4 w-4" /> {myRooms.length} joined rooms
@@ -155,7 +157,7 @@ const Rooms = () => {
                     <div>
                       <p className="text-xs uppercase tracking-[0.22em] text-primary/70 font-medium">Room</p>
                       <h2 className="text-3xl font-bold font-display text-foreground mt-2">{selectedRoom.name}</h2>
-                      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{selectedRoom.description}</p>
+                      <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{selectedRoom.dareText ?? "No dare has been set for this room yet."}</p>
                     </div>
                     <div className="rounded-full bg-muted px-4 py-2 text-xs font-semibold text-muted-foreground">{selectedRoom.visibility}</div>
                   </div>
@@ -163,7 +165,7 @@ const Rooms = () => {
                   <div className="grid gap-3 sm:grid-cols-2 mt-6">
                     <div className="rounded-3xl border border-border bg-muted p-4">
                       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Daily Dare</p>
-                      <p className="mt-3 text-sm text-foreground leading-relaxed">{currentDare.title}</p>
+                      <p className="mt-3 text-sm text-foreground leading-relaxed">{selectedRoom.dareText ?? "No dare has been set for this room yet."}</p>
                     </div>
                     <div className="rounded-3xl border border-border bg-muted p-4">
                       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Dare Time</p>
@@ -172,7 +174,7 @@ const Rooms = () => {
                   </div>
 
                   <div className="rounded-3xl border border-border bg-card p-4 mt-6 shadow-inner">
-                    <DareCard title={currentDare.title} description={currentDare.description} />
+                    <DareCard title="Today's Dare" description={selectedRoom.dareText ?? "No dare has been set for this room yet."} />
                   </div>
 
                   <button
