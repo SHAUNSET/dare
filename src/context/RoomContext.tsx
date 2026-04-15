@@ -1,0 +1,74 @@
+import React, { createContext, useContext, useState, ReactNode } from "react";
+
+export interface Room {
+  id: string;
+  name: string;
+  description: string;
+  adminUsername: string;
+  visibility: "public" | "private";
+  memberCount: number;
+  dareTime: string; // e.g. "08:00"
+  createdAt: string;
+}
+
+interface RoomContextType {
+  rooms: Room[];
+  createRoom: (room: Omit<Room, "id" | "createdAt" | "memberCount">) => void;
+  updateRoom: (roomId: string, updates: Partial<Omit<Room, "id" | "adminUsername" | "createdAt" | "memberCount">>) => void;
+  joinRoom: (roomId: string) => void;
+  joinedRoomIds: string[];
+}
+
+const dummyRooms: Room[] = [
+  { id: "r1", name: "Morning Warriors", description: "Daily dares at sunrise. Push your limits before the world wakes up.", adminUsername: "admin_alex", visibility: "public", memberCount: 234, dareTime: "06:00", createdAt: "2025-12-01" },
+  { id: "r2", name: "Fitness Freaks", description: "Physical challenges only. Cold showers, runs, workouts.", adminUsername: "fit_guru", visibility: "public", memberCount: 512, dareTime: "07:00", createdAt: "2025-11-15" },
+  { id: "r3", name: "Social Butterflies", description: "Dares focused on talking to strangers and social skills.", adminUsername: "social_sara", visibility: "public", memberCount: 189, dareTime: "12:00", createdAt: "2026-01-10" },
+  { id: "r4", name: "Night Owls", description: "Late night challenges for the brave.", adminUsername: "owl_mike", visibility: "public", memberCount: 97, dareTime: "22:00", createdAt: "2026-02-20" },
+  { id: "r5", name: "Creative Chaos", description: "Art, writing, music — creative dares daily.", adminUsername: "art_luna", visibility: "public", memberCount: 341, dareTime: "10:00", createdAt: "2026-03-05" },
+];
+
+const RoomContext = createContext<RoomContextType | null>(null);
+
+export const useRoom = () => {
+  const ctx = useContext(RoomContext);
+  if (!ctx) throw new Error("useRoom must be used within RoomProvider");
+  return ctx;
+};
+
+export const RoomProvider = ({ children }: { children: ReactNode }) => {
+  const [rooms, setRooms] = useState<Room[]>(dummyRooms);
+  const [joinedRoomIds, setJoinedRoomIds] = useState<string[]>(["r1"]);
+
+  const createRoom = (room: Omit<Room, "id" | "createdAt" | "memberCount">) => {
+    const newRoom: Room = {
+      ...room,
+      id: `r-${Date.now()}`,
+      memberCount: 1,
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+    setRooms((prev) => [newRoom, ...prev]);
+    setJoinedRoomIds((prev) => [newRoom.id, ...prev]);
+  };
+
+  const updateRoom = (
+    roomId: string,
+    updates: Partial<Omit<Room, "id" | "adminUsername" | "createdAt" | "memberCount">>,
+  ) => {
+    setRooms((prev) => prev.map((room) => (room.id === roomId ? { ...room, ...updates } : room)));
+  };
+
+  const joinRoom = (roomId: string) => {
+    if (!joinedRoomIds.includes(roomId)) {
+      setJoinedRoomIds((prev) => [...prev, roomId]);
+      setRooms((prev) =>
+        prev.map((r) => (r.id === roomId ? { ...r, memberCount: r.memberCount + 1 } : r))
+      );
+    }
+  };
+
+  return (
+    <RoomContext.Provider value={{ rooms, createRoom, updateRoom, joinRoom, joinedRoomIds }}>
+      {children}
+    </RoomContext.Provider>
+  );
+};
