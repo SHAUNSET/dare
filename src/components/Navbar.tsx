@@ -33,7 +33,7 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 glass border-b border-border">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
+      <div className="max-w-4xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
         <Link to={brandLink} className="flex items-center gap-2">
           <Flame className="h-6 w-6 text-primary" />
           <span className="text-xl font-bold font-display text-primary">DARE</span>

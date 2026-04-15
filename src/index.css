@@ -6,6 +6,59 @@
 
 @layer base {
   :root {
+    --background: 210 16% 98%;
+    --foreground: 220 14% 12%;
+
+    --card: 210 26% 98%;
+    --card-foreground: 220 14% 12%;
+
+    --popover: 210 26% 98%;
+    --popover-foreground: 220 14% 12%;
+
+    --primary: 213 90% 45%;
+    --primary-foreground: 210 16% 98%;
+
+    --secondary: 214 14% 93%;
+    --secondary-foreground: 220 14% 12%;
+
+    --muted: 210 26% 92%;
+    --muted-foreground: 210 11% 50%;
+
+    --accent: 213 90% 45%;
+    --accent-foreground: 210 16% 98%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 210 16% 84%;
+    --input: 210 16% 94%;
+    --ring: 213 90% 45%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 210 18% 96%;
+    --sidebar-foreground: 220 14% 12%;
+    --sidebar-primary: 213 90% 45%;
+    --sidebar-primary-foreground: 210 16% 98%;
+    --sidebar-accent: 210 26% 92%;
+    --sidebar-accent-foreground: 220 14% 12%;
+    --sidebar-border: 210 16% 84%;
+    --sidebar-ring: 213 90% 45%;
+
+    --streak: 24 100% 50%;
+    --streak-glow: 36 100% 60%;
+    --surface-elevated: 210 20% 96%;
+    --surface-hover: 210 24% 94%;
+    --gradient-fire: linear-gradient(135deg, hsl(24, 100%, 50%), hsl(45, 100%, 55%));
+    --gradient-card: linear-gradient(145deg, hsl(210, 26%, 98%), hsl(210, 20%, 94%));
+    --shadow-glow: 0 0 20px -5px hsla(213, 90%, 45%, 0.3);
+    --shadow-card: 0 12px 36px -16px hsla(220, 14%, 20%, 0.16);
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  .dark {
     --background: 220 20% 6%;
     --foreground: 40 10% 92%;
 
@@ -34,8 +87,6 @@
     --input: 220 14% 18%;
     --ring: 36 95% 54%;
 
-    --radius: 0.75rem;
-
     --sidebar-background: 220 20% 8%;
     --sidebar-foreground: 40 10% 82%;
     --sidebar-primary: 36 95% 54%;
@@ -45,17 +96,11 @@
     --sidebar-border: 220 14% 18%;
     --sidebar-ring: 36 95% 54%;
 
-    --streak: 24 100% 50%;
-    --streak-glow: 36 100% 60%;
     --surface-elevated: 220 16% 12%;
     --surface-hover: 220 14% 16%;
-    --gradient-fire: linear-gradient(135deg, hsl(24, 100%, 50%), hsl(45, 100%, 55%));
     --gradient-card: linear-gradient(145deg, hsl(220, 18%, 12%), hsl(220, 18%, 8%));
     --shadow-glow: 0 0 20px -5px hsl(36 95% 54% / 0.3);
     --shadow-card: 0 4px 24px -8px hsl(0 0% 0% / 0.5);
-
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', sans-serif;
   }
 }
 

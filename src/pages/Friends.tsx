@@ -28,7 +28,7 @@ const Friends = () => {
   return (
     <div className="min-h-screen bg-background pb-20 sm:pb-0">
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 space-y-6">
         <h1 className="text-2xl font-bold font-display">Friends</h1>
 
         <Tabs defaultValue="friends" className="w-full">

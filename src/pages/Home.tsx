@@ -15,7 +15,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background pb-20 sm:pb-0">
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 space-y-8">
         {/* Streak & Timer */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
