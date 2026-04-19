@@ -163,4 +163,25 @@
     backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--border) / 0.5);
   }
+
+  .fade-in-up {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fadeInUp 0.45s ease-out forwards;
+  }
+
+  .animate-delay-100 {
+    animation-delay: 0.1s;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
