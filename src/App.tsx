@@ -9,7 +9,6 @@ import { DareProvider } from "@/context/DareContext";
 import { RoomProvider } from "@/context/RoomContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Friends from "./pages/Friends";
@@ -44,7 +43,6 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
         <Route path="/home" element={<ProtectedRoute requiredRole="user"><Home /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute requiredRole="user"><Profile /></ProtectedRoute>} />
         <Route path="/friends" element={<ProtectedRoute requiredRole="user"><Friends /></ProtectedRoute>} />
