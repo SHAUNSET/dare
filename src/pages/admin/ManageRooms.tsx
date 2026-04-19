@@ -179,7 +179,6 @@ const ManageRooms = () => {
                 </div>
               </div>
             </div>
-          </div>
 
             <button
               onClick={handleCreate}
