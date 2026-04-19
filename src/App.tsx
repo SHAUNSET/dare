@@ -19,6 +19,7 @@ import ManageRooms from "./pages/admin/ManageRooms";
 import RoomDetail from "./pages/admin/RoomDetail";
 import UsersPage from "./pages/admin/UsersPage";
 import SubmissionsPage from "./pages/admin/SubmissionsPage";
+import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,7 +42,7 @@ const AppRoutes = () => {
     <>
       {/* Admin onboarding overlay — shown once on first admin login */}
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Index />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/home" element={<ProtectedRoute requiredRole="user"><Home /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute requiredRole="user"><Profile /></ProtectedRoute>} />
