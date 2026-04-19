@@ -130,35 +130,43 @@ const UsersPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedRoom.users.map((user) => (
-                      <tr key={user.username} className="border-b border-border last:border-0 hover:bg-surface-hover transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-                              {user.username[0].toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="font-medium text-foreground">@{user.username}</p>
-                              <p className="text-xs text-muted-foreground">Member</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-muted-foreground">{user.email}</td>
-                        <td className="px-6 py-4 text-muted-foreground">{user.joined}</td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
-                              user.status === "active"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-red-100 text-red-700"
-                            }`}
-                          >
-                            <span className={`h-2.5 w-2.5 rounded-full ${user.status === "active" ? "bg-emerald-500" : "bg-red-500"}`} />
-                            {user.status === "active" ? "Active" : "Inactive"}
-                          </span>
+                    {selectedRoom.users.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-10 text-center text-sm text-muted-foreground">
+                          No users have joined this room yet. Share your room to invite people and build activity.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      selectedRoom.users.map((user) => (
+                        <tr key={user.username} className="border-b border-border last:border-0 hover:bg-surface-hover transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
+                                {user.username[0].toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-medium text-foreground">@{user.username}</p>
+                                <p className="text-xs text-muted-foreground">Member</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground">{user.email}</td>
+                          <td className="px-6 py-4 text-muted-foreground">{user.joined}</td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                                user.status === "active"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              <span className={`h-2.5 w-2.5 rounded-full ${user.status === "active" ? "bg-emerald-500" : "bg-red-500"}`} />
+                              {user.status === "active" ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

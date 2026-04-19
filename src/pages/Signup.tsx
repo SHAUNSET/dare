@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth, UserRole } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
+import { Flame, ShieldCheck, Sparkles } from "lucide-react";
 
 const Signup = () => {
   const [username, setUsername] = useState("");
@@ -10,13 +10,14 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<UserRole>("user");
+  const [plan, setPlan] = useState<"free" | "pro">("free");
   const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) return;
-    signup(username, email, password, role);
+    signup(username, email, password, role, plan);
     navigate(role === "admin" ? "/admin" : "/home");
   };
 
@@ -35,7 +36,65 @@ const Signup = () => {
           <p className="text-muted-foreground">Join the challenge. Build your streak.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-card p-8 shadow-card">
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-border bg-card p-8 shadow-card">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Choose your plan</p>
+                <p className="text-xs text-muted-foreground mt-1">Free plan is best to start. Pro unlocks more room options.</p>
+              </div>
+              <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground">Default: Free</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {([
+                {
+                  id: "free",
+                  title: "Free Plan",
+                  description: "Best for new admins starting small.",
+                  features: ["1 room", "Private rooms only", "Up to 10 participants"],
+                  icon: ShieldCheck,
+                },
+                {
+                  id: "pro",
+                  title: "Pro Plan",
+                  description: "Mock upgrade for bigger groups and public rooms.",
+                  features: ["Multiple rooms", "Public rooms", "Larger audiences"],
+                  icon: Sparkles,
+                },
+              ] as const).map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setPlan(item.id)}
+                    className={`rounded-3xl border p-5 text-left transition-all ${
+                      plan === item.id
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border bg-muted hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 space-y-2 text-xs text-muted-foreground">
+                      {item.features.map((feature) => (
+                        <p key={feature} className="flex items-center gap-2">
+                          <span className="block h-2.5 w-2.5 rounded-full bg-primary" /> {feature}
+                        </p>
+                      ))}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Username</label>
             <input

@@ -6,6 +6,8 @@ export interface Room {
   description?: string;
   dareText?: string;
   allowAdminViewSubmissions?: boolean;
+  requiresApproval?: boolean;
+  maxParticipants?: number;
   adminUsername: string;
   visibility: "public" | "private";
   memberCount: number;
@@ -45,6 +47,8 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     const newRoom: Room = {
       ...room,
       allowAdminViewSubmissions: room.allowAdminViewSubmissions ?? false,
+      requiresApproval: room.requiresApproval ?? false,
+      maxParticipants: room.maxParticipants,
       id: `r-${Date.now()}`,
       memberCount: 1,
       createdAt: new Date().toISOString().split("T")[0],

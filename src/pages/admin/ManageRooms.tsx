@@ -12,24 +12,33 @@ const ManageRooms = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [maxParticipants, setMaxParticipants] = useState(10);
   const [allowAdminView, setAllowAdminView] = useState(false);
+  const [requiresApproval, setRequiresApproval] = useState(false);
   const [lastCreatedRoom, setLastCreatedRoom] = useState<Room | null>(null);
 
   const adminRooms = rooms.filter((r) => r.adminUsername === user?.username);
+  const isFreeAdmin = user?.role === "admin" && user?.plan === "free";
+  const canCreateRoom = !isFreeAdmin || adminRooms.length === 0;
 
   const handleCreate = () => {
-    if (!name) return;
+    if (!name || !canCreateRoom) return;
+    const normalizedVisibility = isFreeAdmin ? "private" : visibility;
     const newRoom = createRoom({
       name,
       adminUsername: user?.username || "admin",
-      visibility,
+      visibility: normalizedVisibility,
       dareTime: "08:00",
       allowAdminViewSubmissions: allowAdminView,
+      requiresApproval,
+      maxParticipants: maxParticipants,
     });
     setLastCreatedRoom(newRoom);
     setName("");
-    setVisibility("public");
+    setVisibility(isFreeAdmin ? "private" : "public");
+    setMaxParticipants(10);
     setAllowAdminView(false);
+    setRequiresApproval(false);
   };
 
   return (
@@ -64,17 +73,81 @@ const ManageRooms = () => {
             </div>
 
             <div className="grid gap-4">
+              <div className="rounded-3xl border border-border bg-muted p-4">
+                <p className="text-sm font-semibold text-foreground">Your admin plan</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {isFreeAdmin
+                    ? "Free plan limits: 1 room, private only, max 10 participants."
+                    : "Pro plan mock: multiple rooms, public rooms, and larger participant pools."}
+                </p>
+              </div>
+
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Room name"
                 className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-3xl border border-border bg-muted p-4">
+                  <p className="text-sm font-semibold text-foreground mb-2">Room type</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={isFreeAdmin}
+                      onClick={() => !isFreeAdmin && setVisibility("public")}
+                      className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
+                        visibility === "public"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-muted text-muted-foreground hover:bg-surface-hover"
+                      } ${isFreeAdmin ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      <Globe className="h-4 w-4" /> Public
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVisibility("private")}
+                      className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
+                        visibility === "private"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-muted text-muted-foreground hover:bg-surface-hover"
+                      }`}
+                    >
+                      <Lock className="h-4 w-4" /> Private
+                    </button>
+                  </div>
+                  {isFreeAdmin && (
+                    <p className="mt-2 text-xs text-muted-foreground">Free admins can only create private rooms.</p>
+                  )}
+                </div>
+
+                <div className="rounded-3xl border border-border bg-muted p-4">
+                  <label className="block text-sm font-semibold text-foreground mb-2">Max participants</label>
+                  <input
+                    type="number"
+                    min={2}
+                    max={50}
+                    value={maxParticipants}
+                    onChange={(e) => {
+                      const value = Math.max(2, Number(e.target.value) || 2);
+                      setMaxParticipants(isFreeAdmin ? Math.min(10, value) : value);
+                    }}
+                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {isFreeAdmin
+                      ? "Free admins are limited to 10 participants."
+                      : "Choose the room size your group needs."}
+                  </p>
+                </div>
+              </div>
+
               <div className="rounded-3xl border border-border bg-muted p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-foreground">Allow admin to view submissions</p>
-                    <p className="text-xs text-muted-foreground mt-1">Controls whether admin access is enabled for this room.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Enable admin access to member submissions.</p>
                   </div>
                   <button
                     type="button"
@@ -87,22 +160,54 @@ const ManageRooms = () => {
                   </button>
                 </div>
               </div>
+
+              <div className="rounded-3xl border border-border bg-muted p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Require approval for joins</p>
+                    <p className="text-xs text-muted-foreground mt-1">Control whether private room joins are automatic or need approval.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRequiresApproval((prev) => !prev)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      requiresApproval ? "bg-primary text-primary-foreground" : "bg-muted text-foreground border border-border"
+                    }`}
+                  >
+                    {requiresApproval ? "Required" : "Direct"}
+                  </button>
+                </div>
+              </div>
             </div>
+          </div>
 
             <button
               onClick={handleCreate}
-              disabled={!name}
+              disabled={!name || !canCreateRoom}
               className="gradient-fire inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Create Room
             </button>
+            {!canCreateRoom && (
+              <p className="text-xs text-destructive mt-2">Free plan admins can only create one room. Upgrade to Pro for additional rooms.</p>
+            )}
 
             {lastCreatedRoom && (
               <div className="rounded-3xl border border-primary/30 bg-primary/5 p-4 text-primary shadow-card">
                 <p className="text-sm font-semibold">Room created!</p>
-                <p className="text-xs text-muted-foreground mt-1">Share this room with participants using the link or QR code below.</p>
+                <p className="text-xs text-muted-foreground mt-1">Share this room with participants using the code, link, or QR option below.</p>
                 <div className="mt-4 rounded-3xl border border-border bg-card p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-muted p-4">
+                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Room code</p>
+                      <p className="mt-2 break-words text-sm text-foreground">{lastCreatedRoom.id}</p>
+                    </div>
+                    <div className="rounded-2xl bg-muted p-4">
+                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Participants</p>
+                      <p className="mt-2 text-sm text-foreground">{lastCreatedRoom.maxParticipants ?? 10} max</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Share link</p>
                       <p className="mt-2 break-words text-sm text-foreground">{`${window.location.origin}/rooms/${lastCreatedRoom.id}`}</p>
@@ -133,8 +238,9 @@ const ManageRooms = () => {
           </div>
 
           {adminRooms.length === 0 ? (
-            <div className="rounded-xl border border-border bg-card p-6 text-center text-muted-foreground shadow-card">
-              No rooms have been created under your admin account yet.
+            <div className="rounded-xl border border-border bg-card p-6 text-center shadow-card">
+              <p className="text-lg font-semibold text-foreground">Create your first room</p>
+              <p className="mt-2 text-sm text-muted-foreground">Start a private space for your participants and share the room code or link.</p>
             </div>
           ) : (
             <div className="grid gap-4">

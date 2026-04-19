@@ -26,6 +26,8 @@ const Rooms = () => {
   const [search, setSearch] = useState("");
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [roomCode, setRoomCode] = useState("");
+  const [joinMessage, setJoinMessage] = useState<string | null>(null);
   const [roomSubmissions, setRoomSubmissions] = useState<Record<string, RoomSubmission[]>>({});
 
   const publicRooms = rooms.filter(
@@ -34,6 +36,32 @@ const Rooms = () => {
   const myRooms = rooms.filter((r) => joinedRoomIds.includes(r.id));
   const selectedRoom = myRooms.find((room) => room.id === selectedRoomId) ?? null;
   const submissionsForSelected = selectedRoomId ? roomSubmissions[selectedRoomId] ?? [] : [];
+
+  const handleJoinByCode = () => {
+    const code = roomCode.trim();
+    const targetRoom = rooms.find((room) => room.id === code);
+    if (!code) {
+      setJoinMessage("Enter a valid room code to join.");
+      return;
+    }
+    if (!targetRoom) {
+      setJoinMessage("Room code not found. Check the code and try again.");
+      return;
+    }
+    if (joinedRoomIds.includes(targetRoom.id)) {
+      setJoinMessage(`You already joined ${targetRoom.name}.`);
+      return;
+    }
+    if (targetRoom.requiresApproval) {
+      setJoinMessage(
+        "This room requires approval. Your request has been sent to the admin."
+      );
+      return;
+    }
+    joinRoom(targetRoom.id);
+    setJoinMessage(`Joined ${targetRoom.name}!`);
+    setRoomCode("");
+  };
 
   const handleRoomSubmit = (type: RoomSubmission["type"], content: string) => {
     if (!selectedRoomId) return;
@@ -64,6 +92,32 @@ const Rooms = () => {
           <div className="inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground">
             <Crown className="h-4 w-4" /> {myRooms.length} joined rooms
           </div>
+        </div>
+
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Have a private room code?</p>
+              <p className="text-xs text-muted-foreground mt-1">Enter it here to join a private room instantly.</p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value)}
+                placeholder="Room code"
+                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+              <button
+                onClick={handleJoinByCode}
+                className="rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+              >
+                Join Room
+              </button>
+            </div>
+          </div>
+          {joinMessage && (
+            <p className="mt-3 text-sm text-muted-foreground">{joinMessage}</p>
+          )}
         </div>
 
         <Tabs defaultValue="explore" className="w-full">
@@ -135,14 +189,20 @@ const Rooms = () => {
             </div>
 
             {publicRooms.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">No rooms found</p>
+              <div className="rounded-3xl border border-border bg-muted p-8 text-center">
+                <p className="text-lg font-semibold text-foreground">No rooms found</p>
+                <p className="mt-2 text-sm text-muted-foreground">Try a broader search or ask an admin for a private room code.</p>
+              </div>
             )}
           </TabsContent>
 
           {/* My Rooms */}
           <TabsContent value="myrooms" className="space-y-4 mt-4">
             {myRooms.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">You haven't joined any rooms yet</p>
+              <div className="rounded-3xl border border-border bg-muted p-8 text-center">
+                <p className="text-lg font-semibold text-foreground">Create your first room or join one with a code.</p>
+                <p className="mt-2 text-sm text-muted-foreground">No joined rooms yet. Use a private room code, or explore public rooms to get started.</p>
+              </div>
             ) : selectedRoom ? (
               <div className="space-y-4">
                 <button

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Globe, Lock, Clock, Share2 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -16,6 +16,7 @@ const RoomDetail = () => {
   const [visibility, setVisibility] = useState<"public" | "private">(room?.visibility ?? "public");
   const [dareTime, setDareTime] = useState(room?.dareTime ?? "08:00");
   const [allowAdminView, setAllowAdminView] = useState(room?.allowAdminViewSubmissions ?? false);
+  const dareTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (room) {
@@ -66,6 +67,20 @@ const RoomDetail = () => {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card space-y-6">
           <div className="text-sm text-muted-foreground">Room ID: {room.id}</div>
 
+          {!dareText && (
+            <div className="rounded-3xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-900">
+              <p className="font-semibold text-foreground">No dare set yet</p>
+              <p className="mt-1 text-sm text-orange-700">Set today's dare so participants know what to submit.</p>
+              <button
+                type="button"
+                onClick={() => dareTextareaRef.current?.focus()}
+                className="mt-3 inline-flex rounded-full bg-orange-100 px-4 py-2 text-sm font-semibold text-orange-900 hover:bg-orange-200 transition-all"
+              >
+                Set Today's Dare
+              </button>
+            </div>
+          )}
+
           <div className="grid gap-4">
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">Room Name</label>
@@ -81,6 +96,7 @@ const RoomDetail = () => {
                 <p className="mt-1 text-sm text-foreground">This text will show as the room's active challenge.</p>
               </div>
               <textarea
+                ref={dareTextareaRef}
                 value={dareText}
                 onChange={(e) => setDareText(e.target.value)}
                 rows={5}
