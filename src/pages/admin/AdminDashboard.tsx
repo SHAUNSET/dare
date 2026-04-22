@@ -87,8 +87,8 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+        <div className="grid gap-4 xl:grid-cols-2 w-full">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card w-full overflow-hidden">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Room performance</p>
@@ -99,24 +99,24 @@ const AdminDashboard = () => {
 
             <div className="mt-6 space-y-4">
               {topRooms.map((room) => (
-                <div key={room.id} className="rounded-2xl border border-border bg-muted p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0">
+                <div key={room.id} className="rounded-2xl border border-border bg-muted p-3 sm:p-4 w-full max-w-full">
+                  <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <h3 className="text-sm font-semibold text-foreground truncate">{room.name}</h3>
                       <p className="text-xs text-muted-foreground mt-1 truncate">{room.description}</p>
                     </div>
-                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{room.visibility}</span>
+                    <span className="flex-shrink-0 rounded-full bg-primary/10 px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-primary">{room.visibility}</span>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{room.memberCount} participants</span>
-                    <span>{room.dareTime}</span>
+                  <div className="mt-3 flex items-center justify-between gap-1 sm:gap-2 text-xs text-muted-foreground">
+                    <span className="truncate">{room.memberCount} participants</span>
+                    <span className="flex-shrink-0">{room.dareTime}</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card w-full overflow-hidden">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Activity snapshot</p>

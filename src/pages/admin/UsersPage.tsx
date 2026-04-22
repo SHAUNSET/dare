@@ -108,7 +108,7 @@ const UsersPage = () => {
             </div>
 
             <div className="rounded-3xl border border-border bg-card shadow-card overflow-hidden">
-              <div className="border-b border-border bg-muted px-6 py-4">
+              <div className="border-b border-border bg-muted px-4 py-4 sm:px-6">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{selectedRoom.users.length} room members</p>
@@ -123,25 +123,25 @@ const UsersPage = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left px-6 py-4 text-muted-foreground font-medium">User</th>
-                      <th className="text-left px-6 py-4 text-muted-foreground font-medium">Email</th>
-                      <th className="text-left px-6 py-4 text-muted-foreground font-medium">Joined</th>
-                      <th className="text-left px-6 py-4 text-muted-foreground font-medium">Status</th>
+                      <th className="text-left px-4 py-3 sm:px-6 sm:py-4 text-muted-foreground font-medium">User</th>
+                      <th className="text-left px-4 py-3 sm:px-6 sm:py-4 text-muted-foreground font-medium hidden sm:table-cell">Email</th>
+                      <th className="text-left px-4 py-3 sm:px-6 sm:py-4 text-muted-foreground font-medium hidden sm:table-cell">Joined</th>
+                      <th className="text-left px-4 py-3 sm:px-6 sm:py-4 text-muted-foreground font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {selectedRoom.users.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-6 py-10 text-center text-sm text-muted-foreground">
+                        <td colSpan={4} className="px-4 py-10 sm:px-6 text-center text-sm text-muted-foreground">
                           No users have joined this room yet. Share your room to invite people and build activity.
                         </td>
                       </tr>
                     ) : (
                       selectedRoom.users.map((user) => (
                         <tr key={user.username} className="border-b border-border last:border-0 hover:bg-surface-hover transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
+                          <td className="px-4 py-3 sm:px-6 sm:py-4">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
                                 {user.username[0].toUpperCase()}
                               </div>
                               <div>
@@ -150,17 +150,17 @@ const UsersPage = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-muted-foreground">{user.email}</td>
-                          <td className="px-6 py-4 text-muted-foreground">{user.joined}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3 sm:px-6 sm:py-4 text-muted-foreground hidden sm:table-cell">{user.email}</td>
+                          <td className="px-4 py-3 sm:px-6 sm:py-4 text-muted-foreground hidden sm:table-cell">{user.joined}</td>
+                          <td className="px-4 py-3 sm:px-6 sm:py-4">
                             <span
-                              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                              className={`inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-semibold ${
                                 user.status === "active"
                                   ? "bg-emerald-100 text-emerald-700"
                                   : "bg-red-100 text-red-700"
                               }`}
                             >
-                              <span className={`h-2.5 w-2.5 rounded-full ${user.status === "active" ? "bg-emerald-500" : "bg-red-500"}`} />
+                              <span className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${user.status === "active" ? "bg-emerald-500" : "bg-red-500"}`} />
                               {user.status === "active" ? "Active" : "Inactive"}
                             </span>
                           </td>

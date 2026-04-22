@@ -14,6 +14,7 @@ import { GLOBAL_DARE_UNLOCK_LABEL } from "@/lib/constants";
 interface RoomSubmission {
   id: string;
   username: string;
+  city?: string;
   type: "image" | "video" | "text" | "audio";
   content: string;
   timestamp: string;
@@ -29,6 +30,7 @@ const Rooms = () => {
   const [roomCode, setRoomCode] = useState("");
   const [joinMessage, setJoinMessage] = useState<string | null>(null);
   const [roomSubmissions, setRoomSubmissions] = useState<Record<string, RoomSubmission[]>>({});
+  const [filterMode, setFilterMode] = useState<"global" | "nearby">("global");
 
   const publicRooms = rooms.filter(
     (r) => r.visibility === "public" && r.name.toLowerCase().includes(search.toLowerCase())
@@ -36,6 +38,12 @@ const Rooms = () => {
   const myRooms = rooms.filter((r) => joinedRoomIds.includes(r.id));
   const selectedRoom = myRooms.find((room) => room.id === selectedRoomId) ?? null;
   const submissionsForSelected = selectedRoomId ? roomSubmissions[selectedRoomId] ?? [] : [];
+  const filteredSubmissions = submissionsForSelected.filter((item) => {
+    if (filterMode === "nearby" && user?.city) {
+      return item.city === user.city;
+    }
+    return true;
+  });
 
   const handleJoinByCode = () => {
     const code = roomCode.trim();
@@ -69,6 +77,7 @@ const Rooms = () => {
     const newSubmission: RoomSubmission = {
       id: `room-${selectedRoomId}-${Date.now()}`,
       username: user?.username ?? "you",
+      city: user?.city,
       type,
       content,
       timestamp: "Just now",
@@ -80,9 +89,9 @@ const Rooms = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-0">
+    <div className="min-h-screen bg-background pb-14 sm:pb-0">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 space-y-6">
+      <main className="w-full max-w-full lg:max-w-6xl mx-auto px-4 pt-14 sm:pt-16 pb-8 space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold font-display">Rooms</h1>
@@ -94,18 +103,18 @@ const Rooms = () => {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-card w-full overflow-hidden">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-semibold text-foreground">Have a private room code?</p>
               <p className="text-xs text-muted-foreground mt-1">Enter it here to join a private room instantly.</p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center w-full sm:w-auto">
               <input
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value)}
                 placeholder="Room code"
-                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                className="w-full sm:min-w-0 rounded-lg border border-border bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
               <button
                 onClick={handleJoinByCode}
@@ -217,6 +226,13 @@ const Rooms = () => {
                     <div>
                       <p className="text-xs uppercase tracking-[0.22em] text-primary/70 font-medium">Room</p>
                       <h2 className="text-3xl font-bold font-display text-foreground mt-2">{selectedRoom.name}</h2>
+                      {selectedRoom.dareCategory && (
+                        <div className="mt-3">
+                          <span className="inline-flex text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 text-primary">
+                            {selectedRoom.dareCategory}
+                          </span>
+                        </div>
+                      )}
                       <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{selectedRoom.dareText ?? "No dare has been set for this room yet."}</p>
                     </div>
                     <div className="rounded-full bg-muted px-4 py-2 text-xs font-semibold text-muted-foreground">{selectedRoom.visibility}</div>
@@ -224,7 +240,14 @@ const Rooms = () => {
 
                   <div className="grid gap-3 sm:grid-cols-2 mt-6">
                     <div className="rounded-3xl border border-border bg-muted p-4">
-                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Daily Dare</p>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Daily Dare</p>
+                        {selectedRoom.dareCategory && (
+                          <span className="inline-flex text-[10px] font-semibold px-2 py-1 rounded-full bg-primary/10 text-primary whitespace-nowrap flex-shrink-0">
+                            {selectedRoom.dareCategory}
+                          </span>
+                        )}
+                      </div>
                       <p className="mt-3 text-sm text-foreground leading-relaxed">{selectedRoom.dareText ?? "No dare has been set for this room yet."}</p>
                     </div>
                     <div className="rounded-3xl border border-border bg-muted p-4">
@@ -234,7 +257,7 @@ const Rooms = () => {
                   </div>
 
                   <div className="rounded-3xl border border-border bg-card p-4 mt-6 shadow-inner">
-                    <DareCard title="Today's Dare" description={selectedRoom.dareText ?? "No dare has been set for this room yet."} />
+                    <DareCard title="Today's Dare" description={selectedRoom.dareText ?? "No dare has been set for this room yet."} category={selectedRoom.dareCategory} />
                   </div>
 
                   <button
@@ -256,20 +279,52 @@ const Rooms = () => {
                     </span>
                   </div>
 
+                  {submissionsForSelected.length > 0 && (
+                    <div className="mb-4 flex gap-2">
+                      <button
+                        onClick={() => setFilterMode("global")}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                          filterMode === "global"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        }`}
+                      >
+                        Global
+                      </button>
+                      <button
+                        onClick={() => setFilterMode("nearby")}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                          filterMode === "nearby"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        }`}
+                      >
+                        Nearby
+                      </button>
+                    </div>
+                  )}
+
                   {submissionsForSelected.length === 0 ? (
                     <div className="rounded-3xl border border-dashed border-border bg-muted p-8 text-center">
                       <p className="text-sm font-semibold text-foreground">Submit to unlock submissions</p>
                       <p className="mt-2 text-sm text-muted-foreground">Your room feed will appear once you've completed today's dare.</p>
                     </div>
+                  ) : filteredSubmissions.length === 0 ? (
+                    <div className="rounded-3xl border border-dashed border-border bg-muted p-8 text-center">
+                      <p className="text-sm font-semibold text-foreground">No nearby submissions</p>
+                      <p className="mt-2 text-sm text-muted-foreground">Switch to Global to see submissions from everywhere.</p>
+                    </div>
                   ) : (
                     <div className="space-y-4">
-                      {submissionsForSelected.map((item) => (
+                      {filteredSubmissions.map((item) => (
                         <FeedCard
                           key={item.id}
                           username={item.username}
+                          city={item.city}
                           type={item.type}
                           content={item.content}
                           timestamp={item.timestamp}
+                          category={item.category}
                         />
                       ))}
                     </div>
@@ -288,23 +343,23 @@ const Rooms = () => {
                   </div>
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-3 w-full overflow-hidden">
                   {myRooms.map((room) => (
                     <button
                       key={room.id}
                       onClick={() => setSelectedRoomId(room.id)}
-                      className="w-full text-left rounded-3xl border border-border bg-card p-5 shadow-card transition-all hover:-translate-y-0.5 hover:bg-surface-elevated"
+                      className="w-full max-w-full text-left rounded-3xl border border-border bg-card p-5 shadow-card transition-all hover:-translate-y-0.5 hover:bg-surface-elevated overflow-hidden"
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
+                      <div className="flex items-center justify-between gap-2 sm:gap-3 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <h3 className="text-base font-semibold font-display text-foreground truncate">{room.name}</h3>
                           <p className="text-sm text-muted-foreground mt-1 truncate">{room.description}</p>
                         </div>
-                        <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                        <span className="flex-shrink-0 rounded-full bg-muted px-2 sm:px-3 py-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
                           {room.visibility}
                         </span>
                       </div>
-                      <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                      <div className="mt-4 flex flex-wrap gap-2 sm:gap-3 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {room.memberCount} members</span>
                         <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {room.dareTime}</span>
                       </div>

@@ -13,15 +13,18 @@ const RoomDetail = () => {
 
   const [name, setName] = useState(room?.name ?? "");
   const [dareText, setDareText] = useState(room?.dareText ?? "");
+  const [dareCategory, setDareCategory] = useState<"Social" | "Mental" | "Physical" | "Personal" | "Life">(room?.dareCategory ?? "Social");
   const [visibility, setVisibility] = useState<"public" | "private">(room?.visibility ?? "public");
   const [dareTime, setDareTime] = useState(room?.dareTime ?? "08:00");
   const [allowAdminView, setAllowAdminView] = useState(room?.allowAdminViewSubmissions ?? false);
   const dareTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const categories: Array<"Social" | "Mental" | "Physical" | "Personal" | "Life"> = ["Social", "Mental", "Physical", "Personal", "Life"];
 
   useEffect(() => {
     if (room) {
       setName(room.name);
       setDareText(room.dareText ?? "");
+      setDareCategory(room.dareCategory ?? "Social");
       setVisibility(room.visibility);
       setDareTime(room.dareTime);
       setAllowAdminView(room.allowAdminViewSubmissions ?? false);
@@ -44,7 +47,7 @@ const RoomDetail = () => {
   }
 
   const handleSave = () => {
-    updateRoom(room.id, { name, dareText, visibility, dareTime, allowAdminViewSubmissions: allowAdminView });
+    updateRoom(room.id, { name, dareText, dareCategory, visibility, dareTime, allowAdminViewSubmissions: allowAdminView });
     navigate("/admin/rooms");
   };
 
@@ -103,6 +106,25 @@ const RoomDetail = () => {
                 placeholder="Write the daily dare for this room"
                 className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all"
               />
+              <div className="space-y-3 mt-4">
+                <label className="block text-sm font-medium text-muted-foreground">Dare Category</label>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setDareCategory(cat)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                        dareCategory === cat
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted text-muted-foreground border-border hover:bg-surface-hover"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">

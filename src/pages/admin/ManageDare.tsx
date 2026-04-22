@@ -9,13 +9,15 @@ const ManageDare = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [time, setTime] = useState(dareTime);
+  const [category, setCategory] = useState<"Social" | "Mental" | "Physical" | "Personal" | "Life">("Social");
 
   const handleSet = () => {
     if (!title || !description) return;
-    setCurrentDare({ id: `d-${Date.now()}`, title, description });
+    setCurrentDare({ id: `d-${Date.now()}`, title, description, category });
     setDareTime(time);
     setTitle("");
     setDescription("");
+    setCategory("Social");
   };
 
   return (
@@ -32,7 +34,12 @@ const ManageDare = () => {
             <Target className="h-5 w-5 text-primary" />
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Current Active Dare</h2>
           </div>
-          <h3 className="text-lg font-bold font-display">{currentDare.title}</h3>
+          <div className="flex items-start gap-3 mb-2">
+            <h3 className="text-lg font-bold font-display">{currentDare.title}</h3>
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary whitespace-nowrap">
+              {currentDare.category}
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">{currentDare.description}</p>
           <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
@@ -56,6 +63,26 @@ const ManageDare = () => {
             rows={3}
             className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all"
           />
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Target className="h-3.5 w-3.5" /> Category (Required)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {(["Social", "Mental", "Physical", "Personal", "Life"] as const).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`px-4 py-2 rounded-full font-medium text-sm transition-all ${
+                    category === cat
+                      ? "bg-primary text-primary-foreground border-primary border-2 shadow-lg"
+                      : "bg-muted text-muted-foreground border-2 border-border hover:border-primary/30 hover:bg-muted/80"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5" /> Dare Time

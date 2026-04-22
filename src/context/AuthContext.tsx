@@ -8,6 +8,7 @@ interface User {
   role: UserRole;
   plan: "free" | "pro";
   joinedDate: string;
+  city: string;
 }
 
 interface AuthContextType {
@@ -36,11 +37,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       role,
       plan: "free",
       joinedDate: "2025-01-15",
+      city: "San Francisco",
     });
   };
 
   const signup = (username: string, email: string, _password: string, role: UserRole, plan: "free" | "pro") => {
-    setUser({ username, email, role, plan, joinedDate: new Date().toISOString().split("T")[0] });
+    setUser({ username, email, role, plan, joinedDate: new Date().toISOString().split("T")[0], city: "San Francisco" });
   };
 
   const logout = () => setUser(null);

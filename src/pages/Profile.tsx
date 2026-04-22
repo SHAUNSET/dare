@@ -59,10 +59,80 @@ const insights = [
   },
 ];
 
+// AI Insights generation
+const generatePersonalityTag = (categoryStats: Record<string, number>, streak: number): string => {
+  const categories = Object.entries(categoryStats).sort(([, a], [, b]) => b - a);
+  const dominant = categories[0]?.[0] || "Challenger";
+  
+  if (streak >= 10 && dominant === "Social") return "The Social Powerhouse";
+  if (streak >= 10 && dominant === "Physical") return "The Consistent Builder";
+  if (streak >= 10 && dominant === "Mental") return "The Thoughtful Challenger";
+  if (dominant === "Social") return "The Social Explorer";
+  if (dominant === "Physical") return "The Bold Achiever";
+  if (dominant === "Mental") return "The Silent Improver";
+  if (dominant === "Personal") return "The Self-Discoverer";
+  return "The Challenger";
+};
+
+const generateAIInsights = (categoryStats: Record<string, number>, streak: number, totalSubmissions: number): Array<{ title: string; text: string }> => {
+  const insights: Array<{ title: string; text: string }> = [];
+  
+  const entries = Object.entries(categoryStats).sort(([, a], [, b]) => b - a);
+  const [dominant, dominantCount] = entries[0] || ["Physical", 0];
+  const [weakest, weakestCount] = entries[entries.length - 1] || ["Social", 0];
+  
+  // Insight 1: Dominant category
+  insights.push({
+    title: "Your Strength",
+    text: `You excel in ${dominant} challenges with ${dominantCount} completions. This shows your strong ${dominant.toLowerCase()} abilities and commitment.`,
+  });
+  
+  // Insight 2: Weakest category
+  if (weakestCount < dominantCount * 0.5) {
+    insights.push({
+      title: "Growth Opportunity",
+      text: `${weakest} dares account for only ${weakestCount} completions. Exploring this category could round out your skills and create a more balanced growth profile.`,
+    });
+  }
+  
+  // Insight 3: Consistency
+  if (streak >= 10) {
+    insights.push({
+      title: "Consistency Champion",
+      text: `Your ${streak}-day streak shows exceptional dedication. You're building a habit that compounds over time. Keep this momentum!`,
+    });
+  } else if (streak >= 5) {
+    insights.push({
+      title: "Building Momentum",
+      text: `Your ${streak}-day streak is growing strong. A few more consistent days and you'll reach 10 days. You're on the right track!`,
+    });
+  }
+  
+  // Insight 4: Volume-based
+  if (totalSubmissions >= 40) {
+    insights.push({
+      title: "High Engagement",
+      text: `With ${totalSubmissions} total submissions, you're a top performer. Your dedication is inspiring others in the community.`,
+    });
+  }
+  
+  // Insight 5: Trend insight
+  insights.push({
+    title: "Recommended Focus",
+    text: `Try more ${weakest} challenges to balance your growth and unlock new capabilities you haven't explored yet.`,
+  });
+  
+  return insights.slice(0, 3); // Return top 3 insights
+};
+
 const Profile = () => {
+  console.log("Profile loaded");
   const { user } = useAuth();
-  const { streak, bestStreak, totalSubmissions } = useDare();
+  const { streak, bestStreak, totalSubmissions, categoryStats, recentSubmissions } = useDare();
   const { rooms, joinedRoomIds } = useRoom();
+
+  const personalityTag = generatePersonalityTag(categoryStats, streak);
+  const aiInsights = generateAIInsights(categoryStats, streak, totalSubmissions);
 
   const joinedRooms = rooms.filter((room) => joinedRoomIds.includes(room.id));
   const roomBreakdown = joinedRooms.map((room, index) => ({
@@ -106,14 +176,14 @@ const Profile = () => {
     }
   });
 
-  const dayLabels = ["", "Mon", "", "Wed", "", "Fri", ""];
+  const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const totalActive = heatmapData.filter((d) => d.level > 0).length;
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-0">
+    <div className="w-full min-h-screen bg-background pb-14 sm:pb-0">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 space-y-8">
+      <main className="w-full max-w-6xl mx-auto px-4 pt-20 sm:pt-20 pb-8 space-y-8">
         {/* User Info */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -125,6 +195,11 @@ const Profile = () => {
                 <h1 className="text-xl font-bold font-display">@{user?.username}</h1>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Joined {user?.joinedDate}</p>
+                <div className="mt-2 inline-block">
+                  <span className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold">
+                    {personalityTag}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -162,8 +237,50 @@ const Profile = () => {
           ))}
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card">
-          <div className="flex items-center justify-between mb-4">
+        {/* Category-Wise Progress */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card w-full">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-semibold font-display text-foreground">Category Breakdown</h2>
+              <p className="text-sm text-muted-foreground mt-1">Your progress across challenge categories</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {(["Social", "Mental", "Physical", "Personal", "Life"] as const).map((category) => {
+              const count = categoryStats[category] || 0;
+              const total = Object.values(categoryStats).reduce((a, b) => a + b, 0);
+              const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+              const categoryColors: Record<string, { bg: string; text: string; progress: string }> = {
+                Social: { bg: "bg-blue-500/10", text: "text-blue-600", progress: "bg-blue-500" },
+                Mental: { bg: "bg-purple-500/10", text: "text-purple-600", progress: "bg-purple-500" },
+                Physical: { bg: "bg-orange-500/10", text: "text-orange-600", progress: "bg-orange-500" },
+                Personal: { bg: "bg-green-500/10", text: "text-green-600", progress: "bg-green-500" },
+                Life: { bg: "bg-pink-500/10", text: "text-pink-600", progress: "bg-pink-500" },
+              };
+              const colors = categoryColors[category];
+
+              return (
+                <motion.div
+                  key={category}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`${colors.bg} rounded-2xl p-4 text-center border border-border/50`}
+                >
+                  <p className={`text-sm font-semibold ${colors.text} mb-2`}>{category}</p>
+                  <p className="text-2xl font-bold text-foreground">{count}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{percentage}% of total</p>
+                  <div className="mt-3 h-2 rounded-full bg-muted/50 overflow-hidden">
+                    <div className={`h-full rounded-full ${colors.progress} transition-all`} style={{ width: `${percentage}%` }} />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card w-full">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <h2 className="text-sm font-semibold font-display">Global Activity Heatmap</h2>
@@ -171,36 +288,32 @@ const Profile = () => {
             <p className="text-xs text-muted-foreground">{totalActive} active days across all rooms</p>
           </div>
 
-          <div className="overflow-x-auto">
-            <div className="inline-block">
-              <div className="flex ml-8 mb-1">
-                {monthLabels.map(({ label, col }, i) => (
-                  <span
-                    key={i}
-                    className="text-[10px] text-muted-foreground"
-                    style={{ position: "relative", left: `${col * 13}px`, marginRight: i < monthLabels.length - 1 ? "0" : "0", width: 0, whiteSpace: "nowrap" }}
-                  >
+          <div className="w-full overflow-x-auto pb-4">
+            <div className="inline-block min-w-full">
+              <div className="flex gap-1 mb-2 pl-12">
+                {monthLabels.map(({ label }, i) => (
+                  <span key={i} className="text-[8px] sm:text-[9px] text-muted-foreground w-12 font-medium">
                     {label}
                   </span>
                 ))}
               </div>
 
-              <div className="flex gap-0">
-                <div className="flex flex-col gap-[3px] mr-2 pt-0">
+              <div className="flex gap-1">
+                <div className="flex flex-col gap-[2px] w-10">
                   {dayLabels.map((label, i) => (
-                    <div key={i} className="h-[10px] flex items-center">
-                      <span className="text-[10px] text-muted-foreground w-6 text-right">{label}</span>
+                    <div key={i} className="h-3 sm:h-4 flex items-center justify-end pr-2">
+                      <span className="text-[6px] sm:text-[9px] text-muted-foreground font-medium">{label}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex gap-[3px]">
+                <div className="flex gap-1">
                   {weeks.map((week, wi) => (
-                    <div key={wi} className="flex flex-col gap-[3px]">
+                    <div key={wi} className="flex flex-col gap-[2px]">
                       {week.map((day, di) => (
                         <div
                           key={`${wi}-${di}`}
-                          className={`h-[10px] w-[10px] rounded-[2px] ${day.level < 0 ? "bg-transparent" : levels[day.level]} transition-colors`}
+                          className={`h-3 w-3 sm:h-4 sm:w-4 rounded cursor-pointer hover:opacity-80 transition-all ${day.level < 0 ? "bg-transparent" : levels[day.level]}`}
                           title={day.level >= 0 ? `${day.date.toLocaleDateString()}: ${day.level} submissions` : ""}
                         />
                       ))}
@@ -209,15 +322,75 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mt-3 justify-end">
-                <span className="text-[10px] text-muted-foreground">Less</span>
+              <div className="flex items-center gap-2 mt-4 pl-12">
+                <span className="text-[6px] sm:text-[9px] text-muted-foreground text-nowrap">Less</span>
                 {[0, 1, 2, 3, 4].map((l) => (
-                  <div key={l} className={`h-[10px] w-[10px] rounded-[2px] ${levels[l]}`} />
+                  <div key={l} className={`h-2 w-2 sm:h-3 sm:w-3 rounded ${levels[l]}`} />
                 ))}
-                <span className="text-[10px] text-muted-foreground">More</span>
+                <span className="text-[6px] sm:text-[9px] text-muted-foreground text-nowrap">More</span>
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* AI Growth Insights */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="flex items-center gap-2 mb-5">
+            <Zap className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold font-display text-foreground">Your Growth Insights</h2>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {aiInsights.map((insight, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-primary/10 p-4"
+              >
+                <p className="text-sm font-semibold text-foreground mb-2">{insight.title}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{insight.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Recent Activity */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="mb-5">
+            <h2 className="text-lg font-semibold font-display text-foreground">Recent Activity</h2>
+            <p className="text-sm text-muted-foreground mt-1">Your last 5 submissions</p>
+          </div>
+
+          {recentSubmissions.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-border bg-muted p-8 text-center">
+              <p className="text-sm font-semibold text-foreground">No submissions yet</p>
+              <p className="mt-2 text-sm text-muted-foreground">Start by submitting to today's dare!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentSubmissions.map((submission) => (
+                <motion.div
+                  key={submission.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="rounded-2xl border border-border/50 bg-muted/50 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">@{submission.username}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{submission.timestamp}</p>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium flex-shrink-0">
+                      {submission.category}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3 line-clamp-2">{submission.content}</p>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card">

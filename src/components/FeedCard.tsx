@@ -3,12 +3,14 @@ import { motion } from "framer-motion";
 
 interface FeedCardProps {
   username: string;
+  city?: string;
   type: "image" | "video" | "text" | "audio";
   content: string;
   timestamp: string;
+  category?: "Social" | "Mental" | "Physical" | "Personal" | "Life";
 }
 
-const FeedCard = ({ username, type, content, timestamp }: FeedCardProps) => (
+const FeedCard = ({ username, city, type, content, timestamp, category }: FeedCardProps) => (
   <motion.div
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
@@ -16,9 +18,21 @@ const FeedCard = ({ username, type, content, timestamp }: FeedCardProps) => (
   >
     <div className="p-4">
       <div className="flex items-center justify-between mb-3">
-        <span className="font-semibold text-sm text-foreground">@{username}</span>
-        <span className="text-xs text-muted-foreground">{timestamp}</span>
+        <div className="flex items-center gap-1 text-sm flex-wrap">
+          <span className="font-semibold text-foreground">@{username}</span>
+          <span className="text-muted-foreground">•</span>
+          <span className="text-muted-foreground text-sm">{city || "Someone nearby"}</span>
+        </div>
+        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">{timestamp}</span>
       </div>
+
+      {category && (
+        <div className="mb-3">
+          <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+            {category}
+          </span>
+        </div>
+      )}
 
       {type === "image" && (
         <img src={content} alt="submission" className="w-full rounded-lg object-cover max-h-64 mb-3" />

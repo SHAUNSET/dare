@@ -88,9 +88,9 @@ const Friends = () => {
   const handleReject = (id: string) => setRequests((prev) => prev.filter((req) => req.id !== id));
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-0">
+    <div className="min-h-screen bg-background pb-14 sm:pb-0">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 space-y-6">
+      <main className="w-full max-w-full lg:max-w-6xl mx-auto px-4 pt-14 sm:pt-16 pb-8 space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold font-display">Friends</h1>
@@ -275,6 +275,7 @@ const Friends = () => {
                           type={item.type}
                           content={item.content}
                           timestamp={item.timestamp}
+                          category={item.category}
                         />
                       ))
                     )}
