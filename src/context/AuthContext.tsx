@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export type UserRole = "user" | "admin";
 
@@ -14,8 +15,6 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, role: UserRole) => void;
-  signup: (username: string, email: string, password: string, role: UserRole, plan: "free" | "pro") => void;
   logout: () => void;
 }
 
@@ -30,25 +29,58 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (email: string, _password: string, role: UserRole) => {
-    setUser({
-      username: email.split("@")[0],
-      email,
-      role,
-      plan: "free",
-      joinedDate: "2025-01-15",
-      city: "San Francisco",
-    });
-  };
+  // 🔥 SYNC WITH SUPABASE
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
 
-  const signup = (username: string, email: string, _password: string, role: UserRole, plan: "free" | "pro") => {
-    setUser({ username, email, role, plan, joinedDate: new Date().toISOString().split("T")[0], city: "San Francisco" });
-  };
+      if (data.session) {
+        const u = data.session.user;
 
-  const logout = () => setUser(null);
+        setUser({
+          username: u.email?.split("@")[0] || "user",
+          email: u.email || "",
+          role: "user", // temp (we’ll fix later)
+          plan: "free",
+          joinedDate: new Date().toISOString().split("T")[0],
+          city: "Unknown",
+        });
+      }
+    };
+
+    getSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session) {
+          const u = session.user;
+
+          setUser({
+            username: u.email?.split("@")[0] || "user",
+            email: u.email || "",
+            role: "user",
+            plan: "free",
+            joinedDate: new Date().toISOString().split("T")[0],
+            city: "Unknown",
+          });
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, logout }}>
       {children}
     </AuthContext.Provider>
   );

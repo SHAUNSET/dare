@@ -4,6 +4,7 @@ import { useAppTheme } from "@/context/ThemeContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Flame, Sun, Moon } from "lucide-react";
 import PlanModal from "@/components/PlanModal";
+import { signIn, signUp } from "../services/authService";
 
 const Login = () => {
   const location = useLocation();
@@ -18,25 +19,31 @@ const Login = () => {
   );
   const [plan, setPlan] = useState<"free" | "pro">("free");
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const { login, signup } = useAuth();
   const { theme, toggleTheme } = useAppTheme();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
     if (isLogin) {
-      login(email, password, role);
-      navigate(role === "admin" ? "/admin" : "/home");
+      await signIn(email, password);
+      navigate("/home");
     } else {
       if (password !== confirmPassword) return;
-      signup(username, email, password, role, plan);
-      if (role === "admin") {
-        setShowPlanModal(true);
-      } else {
-        navigate("/home");
-      }
+
+      await signUp(email, password, username, role, plan);
+
+      // 🔥 THIS IS THE IMPORTANT LINE
+      await signIn(email, password);
+
+      navigate("/home");
     }
-  };
+  } catch (err: any) {
+    console.error("ERROR:", err);
+    alert(err.message);
+  }
+};
 
   const handlePlanSelect = (plan: "free" | "pro") => {
     // Update user plan in context or backend
